@@ -7,6 +7,7 @@
  *
  * Collaborators:
  *    Gage Peterson
+ *    Weston Dransfield
  *    Joel Lassen
  *
  * Summary:
@@ -59,22 +60,58 @@ private:
 
    bool mHaveMonthlyPayment; // m
 
+   /*********************************************************************
+    * Wiil get the principle from the files.
+    ********************************************************************/
+   double getPrincipal(double i, double m, double n)
+   {
+      double tmp = 1 - pow(1 + i, -n);
+      return tmp * (m / i);
+   }
+
    /***********************************************************************
     * Find p given i, m, n.
     ***********************************************************************/
    void findPrincipal()
    {
-      double tmp = 1 - pow(1 + mPeriodicRate, -mTermInMonths);
-      mPrincipal = tmp * (mMonthlyPayment / mPeriodicRate);
+      mPrincipal = getPrincipal(mPeriodicRate, mMonthlyPayment,
+                                mTermInMonths);
       mHavePeriodicRate = true;
    }
 
    /***********************************************************************
     * Find i given p, m, n.
+    * Thanks to Gage and Weston.
     **********************************************************************/
    void findPeriodicRate()
    {
+      /*
       mPrincipal = mRate / 12;
+      mHavePeriodicRate = true;
+      */
+      double guess = .1;
+      double principalCheck = getPrincipal(guess, mMonthlyPayment,
+                                           mTermInMonths);
+
+      //stop checking when the current guess is within an acceptable range.
+      while (!(principalCheck < mPrincipal + .001 && principalCheck >
+               mPrincipal - .001))
+      {
+         double temp = mMonthlyPayment - mMonthlyPayment
+                       * pow(1 + guess, mTermInMonths * -1)
+                       - guess * mPrincipal;
+         temp /= mTermInMonths * pow(1 + guess, mTermInMonths * -1 - 1)
+            - mPrincipal;
+
+         guess = guess - temp;
+         principalCheck = getPrincipal(guess, mMonthlyPayment,
+                                       mTermInMonths);
+      }
+
+      //set the rates
+      mPeriodicRate = guess;
+      mRate = guess * 12;
+
       mHavePeriodicRate = true;
    }
 
@@ -83,9 +120,9 @@ private:
     **********************************************************************/
    void findMonthlyPayment()
    {
-      mMonthlyPayment = (mPeriodicRate * mPrincipal)
-                      / (1 - pow((1 + mPeriodicRate), -mTermInMonths));
-      mHaveMonthlyPayment = true;
+      double tmp = mPeriodicRate / (1 - pow(1 + mPeriodicRate,
+                                            -1 * mTermInMonths));
+      mMonthlyPayment = tmp * mPrincipal;
    }
 
    /***********************************************************************
@@ -93,7 +130,10 @@ private:
     **********************************************************************/
    void findTermInMonths()
    {
-
+      double tmp = mPrincipal - mMonthlyPayment / mPeriodicRate;
+      tmp /= -1 * mMonthlyPayment / mPeriodicRate;
+      mTermInMonths = -1 * log(tmp) / log(1 + mPeriodicRate) + 1;
+      mHaveTermInMonths = true;
    }
 
    /***********************************************************************
@@ -201,35 +241,40 @@ private:
    }
 
 public:
-   Amortize() 
+   Amortize()
    {
-      mHavePrincipal      = System.getProperty("p", "") == "" ? false : true;
-      mHavePeriodicRate   = System.getProperty("r", "") == "" ? false : true;
-      mHaveTermInMonths   = System.getProperty("n", "") == "" ? false : true;
-      mHaveMonthlyPayment = System.getProperty("m", "") == "" ? false : true;
+      /*
+      mHavePrincipal = System.getProperty("p", "") == "" ? false : true;
+      mHavePeriodicRate = System.getProperty("r", "") == "" ? false : true;
+      mHaveTermInMonths  = System.getProperty("n", "") == "" ? false : true;
+      mHaveMonthlyPayment = System.getProperty("m", "") == "" ?
+         false : true;
+      */
 
-      mPrincipal = mHavePrincipal ?
-         atof(System.getProperty("p", "").c_str()) : 0;
+      mShowAmortizationSchedule = (System.getProperty("v", "false")
+                                   == "false") ? false : true;
 
-      mTermInMonths = mHaveTermInMonths ?
-         atoi(System.getProperty("n", "").c_str()) : 0;
+      mPrincipal = atof(System.getProperty("p", "-1.0").c_str());
+      mHavePrincipal = mPrincipal != -1.0;
 
-      mRate = mHavePeriodicRate ?
-         atof(System.getProperty("r", "").c_str()) : 0;
+      mTermInMonths = atof(System.getProperty("n", "-1.0").c_str());
+      mHaveTermInMonths = mTermInMonths != -1.0;
 
-      mMonthlyPayment = mHaveMonthlyPayment ?
-         atof(System.getProperty("m", "").c_str()) : 0;
+      mRate = atof(System.getProperty("r", "-1.0").c_str());
+      if (mRate > 0)
+      {
+         mPeriodicRate = mRate / 1200;
+         mHavePeriodicRate = true;
+      }
 
-      mPeriodicRate = mRate / 1200;
+      mMonthlyPayment = atof(System.getProperty("m", "-1.0").c_str());
+      mHaveMonthlyPayment = mMonthlyPayment != -1.0;
 
-      mExtraMonthlyPayment = System.getProperty("x", "") == "" ?
-         0 : atof(System.getProperty("x", "").c_str());
+      mExtraMonthlyPayment = atof(System.getProperty("x", "-1.0").c_str());
 
-      mEnd = System.getProperty("e", "") == "" ?
-         mTermInMonths : atof(System.getProperty("e", "").c_str());
+      mEnd = atoi(System.getProperty("e", "0").c_str());
 
-      mStart = System.getProperty("s", "") == "" ?
-         0 : atof(System.getProperty("s", "").c_str());
+      mStart = atof(System.getProperty("s", "-1").c_str());
    }
 
    void display(); // IMPLEMENTED BELOW
