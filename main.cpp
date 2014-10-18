@@ -201,9 +201,36 @@ private:
    }
 
 public:
-   Amortize(); // TODO: YOU IMPLEMENT THIS CONSTRUCTOR, in addition to
-               // findPrincipal, findPeriodicRate, findMonthlyPayment,
-               // and findTermInMonths.
+   Amortize() 
+   {
+      mHavePrincipal      = System.getProperty("p", "") == "" ? false : true;
+      mHavePeriodicRate   = System.getProperty("r", "") == "" ? false : true;
+      mHaveTermInMonths   = System.getProperty("n", "") == "" ? false : true;
+      mHaveMonthlyPayment = System.getProperty("m", "") == "" ? false : true;
+
+      mPrincipal = mHavePrincipal ?
+         atof(System.getProperty("p", "").c_str()) : 0;
+
+      mTermInMonths = mHaveTermInMonths ?
+         atoi(System.getProperty("n", "").c_str()) : 0;
+
+      mRate = mHavePeriodicRate ?
+         atof(System.getProperty("r", "").c_str()) : 0;
+
+      mMonthlyPayment = mHaveMonthlyPayment ?
+         atof(System.getProperty("m", "").c_str()) : 0;
+
+      mPeriodicRate = mRate / 1200;
+
+      mExtraMonthlyPayment = System.getProperty("x", "") == "" ?
+         0 : atof(System.getProperty("x", "").c_str());
+
+      mEnd = System.getProperty("e", "") == "" ?
+         mTermInMonths : atof(System.getProperty("e", "").c_str());
+
+      mStart = System.getProperty("s", "") == "" ?
+         0 : atof(System.getProperty("s", "").c_str());
+   }
 
    void display(); // IMPLEMENTED BELOW
 
