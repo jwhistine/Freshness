@@ -9,6 +9,7 @@
  *    Gage Peterson
  *    Weston Dransfield
  *    Joel Lassen
+ *    Sean McElwain
  *
  * Summary:
  *    Amortization Calculating Program
@@ -81,37 +82,10 @@ private:
 
    /***********************************************************************
     * Find i given p, m, n.
-    * Thanks to Gage and Weston.
     **********************************************************************/
    void findPeriodicRate()
    {
-      /*
       mPrincipal = mRate / 12;
-      mHavePeriodicRate = true;
-      */
-      double guess = .1;
-      double principalCheck = getPrincipal(guess, mMonthlyPayment,
-                                           mTermInMonths);
-
-      //stop checking when the current guess is within an acceptable range.
-      while (!(principalCheck < mPrincipal + .001 && principalCheck >
-               mPrincipal - .001))
-      {
-         double temp = mMonthlyPayment - mMonthlyPayment
-                       * pow(1 + guess, mTermInMonths * -1)
-                       - guess * mPrincipal;
-         temp /= mTermInMonths * pow(1 + guess, mTermInMonths * -1 - 1)
-            - mPrincipal;
-
-         guess = guess - temp;
-         principalCheck = getPrincipal(guess, mMonthlyPayment,
-                                       mTermInMonths);
-      }
-
-      //set the rates
-      mPeriodicRate = guess;
-      mRate = guess * 12;
-
       mHavePeriodicRate = true;
    }
 
